@@ -30,9 +30,14 @@ async function run() {
 
     const medicinesCollection = client.db("MediDetail").collection("medicines");
     const usersCollection = client.db("MediDetail").collection("users");
+    const bannersCollection = client.db("MediDetail").collection("banners");
 
     app.get("/users", async (req, res) => {
       const users = await usersCollection.find().toArray();
+      res.send(users);
+    });
+    app.get("/banners", async (req, res) => {
+      const users = await bannersCollection.find().toArray();
       res.send(users);
     });
 
@@ -123,10 +128,6 @@ async function run() {
       }
     });
 
-
-
-
-
     app.post("/banners", async (req, res) => {
       const banner = req.body;
 
@@ -149,11 +150,6 @@ async function run() {
         console.error("Error uploading banner:", error);
         res.status(500).send({ error: "Failed to upload banner" });
       }
-    });
-
-    app.get("/bannersFull", async (req, res) => {
-      const banners = await bannerCollection.find().toArray();
-      res.send(banners);
     });
 
     app.get("/banners/:id", async (req, res) => {
@@ -245,6 +241,42 @@ async function run() {
         res.status(500).send({ message: "Error retrieving medicine" });
       }
     });
+
+
+    app.delete("/medicines/:id", async (req, res) => {
+      const id = req.params.id;
+
+      try {
+        const result = await medicinesCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ message: "Medicine not found" });
+        }
+
+        res.send({ message: "Medicine not found" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Error deleting Medicine" });
+      }
+    });
+
+    app.post('/medicinespost', async (req, res) => {
+      const newMedicine = req.body;
+
+
+      const result = await medicinesCollection.insertOne({
+        ...newMedicine,
+        timestamp: Date.now(),
+      });
+
+
+      res.status(201).send({ message: "Medicin created successfully", result });
+
+
+    });
+
 
     app.get("/logout", async (req, res) => {
       try {
